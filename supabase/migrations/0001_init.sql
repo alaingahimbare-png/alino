@@ -141,7 +141,7 @@ create trigger documents_number before insert on public.documents
 
 -- Horodatage des changements de statut
 create function public.touch_document() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = public as $$
 begin
   new.updated_at := now();
   if new.status = 'paid' and old.status is distinct from 'paid' and new.paid_at is null then
