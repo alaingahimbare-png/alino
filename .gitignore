@@ -6,3 +6,7 @@ dist
 !.env.example
 *.log
 .DS_Store
+!.env.native
+android/app/release
+*.keystore
+*.jks

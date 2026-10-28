@@ -72,6 +72,48 @@ Pour tester le webhook en local : `stripe listen --forward-to localhost:8888/api
 
 Carte de test Stripe : `4242 4242 4242 4242`, n'importe quelle date future et n'importe quel CVC.
 
+## Applications mobiles (Android / iOS)
+
+### Installer sans magasin (déjà disponible)
+Le site est une application web installable :
+- **Android (Chrome)** : ouvrir le site → menu ⋮ → *Installer l'application*.
+- **iPhone (Safari)** : ouvrir le site → bouton Partager → *Sur l'écran d'accueil*.
+
+### Version native (Capacitor)
+Les dossiers `android/` et `ios/` contiennent les projets natifs. Ils embarquent l'interface et appellent les fonctions du site en ligne (`VITE_PUBLIC_SITE_URL` dans `.env.native`). Ajouts natifs : barre d'onglets, écran de démarrage, partage natif des liens clients, bouton retour Android, détection hors ligne, retour haptique, connexion par code à 6 chiffres.
+
+```bash
+npm run cap:sync          # reconstruit l'interface et copie dans android/ et ios/
+npx cap open android      # ouvre Android Studio
+npx cap open ios          # ouvre Xcode (Mac obligatoire)
+npm run icons && npm run cap:assets   # régénère icônes et écrans de démarrage depuis assets/logo.svg
+```
+
+Identifiant de l'app : `com.bleucupplus.relancefacile` (dans `capacitor.config.ts`). **Il ne peut plus changer après la première publication.**
+
+### Google Play
+1. GitHub fabrique l'app à chaque mise à jour : onglet **Actions → Android** → dernière exécution → **Artifacts**.
+   - `relancefacile-apk-test` : à installer directement sur un téléphone Android pour tester.
+   - `relancefacile-aab` : le fichier à téléverser sur Google Play.
+2. **Clé de signature** (à faire une seule fois, sur votre ordinateur, avec Java installé) :
+   ```bash
+   keytool -genkeypair -v -keystore upload.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
+   base64 -w0 upload.jks > upload.jks.b64     # sur Mac : base64 -i upload.jks -o upload.jks.b64
+   ```
+   Gardez `upload.jks` et ses mots de passe en lieu sûr (perdus = mise à jour impossible sans passer par le support Google).
+   Puis, dans GitHub → **Settings → Secrets and variables → Actions**, créez :
+   `ANDROID_KEYSTORE_BASE64` (contenu de `upload.jks.b64`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`upload`), `ANDROID_KEY_PASSWORD`.
+3. Créez le compte [Google Play Console](https://play.google.com/console) (25 $ US). Pour un compte personnel récent : test fermé avec **12 testeurs pendant 14 jours** avant la mise en production.
+
+### App Store
+1. Compte [Apple Developer](https://developer.apple.com/programs/) (99 $ US / an).
+2. Fabrication et envoi depuis un Mac avec Xcode (`npx cap open ios` → Product → Archive), ou via un service de compilation en ligne (Codemagic, Ionic Appflow…).
+3. Captures d'écran, description, lien de la politique de confidentialité (`/privacy`) et compte de démonstration pour l'examinateur Apple.
+
+### Exigences des magasins déjà en place
+- Politique de confidentialité FR/EN : `https://relancefacile-app.netlify.app/privacy` (ajoutez `VITE_CONTACT_EMAIL` dans Netlify et `.env.native` pour afficher une adresse de contact)
+- Suppression du compte dans l'app : Paramètres → Supprimer mon compte
+
 ## Sécurité
 
 - Chaque table est protégée par la sécurité au niveau des lignes (RLS) : un pro ne voit et ne modifie que ses propres données.

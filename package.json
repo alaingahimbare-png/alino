@@ -8,9 +8,21 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "typecheck": "tsc",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:native": "tsc && vite build --mode native",
+    "icons": "node scripts/make-icons.mjs",
+    "cap:sync": "npm run build:native && cap sync",
+    "cap:assets": "capacitor-assets generate --android --ios --iconBackgroundColor \"#1d4ed8\" --splashBackgroundColor \"#1d4ed8\""
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
     "@netlify/functions": "^6.0.3",
     "@supabase/supabase-js": "^2.118.0",
     "react": "^19.3.1",
@@ -19,10 +31,15 @@
     "stripe": "^23.0.1"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "sharp": "^0.35.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.5"
   }

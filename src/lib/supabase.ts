@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { apiUrl } from "./platform";
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -11,7 +12,7 @@ export const supabase = createClient(url || "http://localhost:54321", anonKey ||
 /** Appelle une fonction serveur avec le jeton de l'utilisateur connecté. */
 export async function api<T>(path: string, body: unknown): Promise<T> {
   const { data } = await supabase.auth.getSession();
-  const res = await fetch(path, {
+  const res = await fetch(apiUrl(path), {
     method: "POST",
     headers: {
       "content-type": "application/json",

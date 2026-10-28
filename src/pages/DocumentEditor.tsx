@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { computeTotals, formatDate, formatMoney, lineTotalCents } from "../../shared/totals";
 import StatusBadge, { isOverdue } from "../components/StatusBadge";
 import { useI18n } from "../lib/i18n";
+import { isNative, publicSiteUrl, shareLink, tap } from "../lib/platform";
 import { useSession } from "../lib/session";
 import { api, supabase } from "../lib/supabase";
 import type { Client, Doc, DocKind, DocStatus, Reminder } from "../lib/types";
@@ -243,8 +244,10 @@ export default function DocumentEditor() {
 
   async function copyLink() {
     if (!doc) return;
-    await navigator.clipboard.writeText(`${window.location.origin}/p/${doc.public_token}`);
-    setMessage({ type: "ok", text: t("copied") });
+    tap();
+    const label = `${kind === "invoice" ? t("invoice") : t("quote")} ${doc.number}`;
+    const how = await shareLink(`${publicSiteUrl()}/p/${doc.public_token}`, label);
+    setMessage({ type: "ok", text: how === "shared" ? t("shared") : t("copied") });
   }
 
   if (clients.length === 0) {
@@ -390,7 +393,7 @@ export default function DocumentEditor() {
             )}
             {status !== "draft" && (
               <button className="btn" onClick={copyLink}>
-                {t("copyLink")}
+                {isNative ? t("shareLink") : t("copyLink")}
               </button>
             )}
             {kind === "invoice" && status === "sent" && (

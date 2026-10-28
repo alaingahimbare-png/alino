@@ -113,6 +113,23 @@ const fr = {
   quoteDeclined: "Devis refusé.",
   notFound: "Document introuvable.",
   poweredBy: "Propulsé par RelanceFacile",
+  // Connexion par code, hors ligne, partage
+  codeSent: "C'est envoyé ! Cliquez sur le lien reçu par courriel, ou entrez le code à 6 chiffres ici.",
+  codeLabel: "Code reçu par courriel",
+  verifyCode: "Me connecter",
+  badCode: "Code invalide ou expiré.",
+  otherEmail: "Utiliser un autre courriel",
+  offline: "Hors ligne — vos modifications ne pourront pas être enregistrées.",
+  shareLink: "Partager le lien client",
+  shared: "Lien partagé",
+  // Confidentialité et compte
+  privacy: "Confidentialité",
+  account: "Votre compte",
+  deleteAccount: "Supprimer mon compte",
+  deleteAccountHelp: "Supprime définitivement votre compte, vos clients, devis, factures et relances. Cette action est irréversible.",
+  deleteAccountConfirm: "Pour confirmer, tapez SUPPRIMER :",
+  deleteAccountWord: "SUPPRIMER",
+  accountDeleted: "Votre compte a été supprimé.",
 };
 
 type Dict = typeof fr;
@@ -224,6 +241,21 @@ const en: Dict = {
   quoteDeclined: "Quote declined.",
   notFound: "Document not found.",
   poweredBy: "Powered by PayNudge",
+  codeSent: "Sent! Click the link in your email, or enter the 6-digit code here.",
+  codeLabel: "Code from your email",
+  verifyCode: "Sign in",
+  badCode: "Invalid or expired code.",
+  otherEmail: "Use another email",
+  offline: "Offline — your changes can't be saved right now.",
+  shareLink: "Share client link",
+  shared: "Link shared",
+  privacy: "Privacy",
+  account: "Your account",
+  deleteAccount: "Delete my account",
+  deleteAccountHelp: "Permanently deletes your account, clients, quotes, invoices and reminders. This cannot be undone.",
+  deleteAccountConfirm: "To confirm, type DELETE:",
+  deleteAccountWord: "DELETE",
+  accountDeleted: "Your account has been deleted.",
 };
 
 const dicts: Record<Lang, Dict> = { fr, en };

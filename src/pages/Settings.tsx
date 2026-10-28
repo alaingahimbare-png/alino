@@ -1,6 +1,8 @@
+import { App as CapApp } from "@capacitor/app";
 import { useEffect, useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useI18n, type Lang } from "../lib/i18n";
+import { isNative, openExternal } from "../lib/platform";
 import { useSession } from "../lib/session";
 import { api, supabase } from "../lib/supabase";
 
@@ -22,13 +24,20 @@ export default function Settings() {
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Retour depuis Stripe : resynchronise l'état du compte
+  // Resynchronise l'état Stripe : au retour de l'inscription (web), à l'ouverture de la page
+  // si l'inscription n'est pas finie, et quand l'app native revient au premier plan.
   useEffect(() => {
-    if (!params.get("stripe")) return;
-    api("/api/stripe-connect", { action: "status" })
-      .then(() => refreshBusiness())
-      .catch(() => undefined)
-      .finally(() => setParams({}, { replace: true }));
+    const pending = !!business?.stripe_account_id && !business.stripe_charges_enabled;
+    const sync = () =>
+      api("/api/stripe-connect", { action: "status" })
+        .then(() => refreshBusiness())
+        .catch(() => undefined);
+    if (params.get("stripe") || pending) sync().finally(() => setParams({}, { replace: true }));
+    if (!isNative || !pending) return;
+    const sub = CapApp.addListener("resume", sync);
+    return () => {
+      sub.then((h) => h.remove());
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -76,7 +85,23 @@ export default function Settings() {
     setBusy(true);
     try {
       const { url } = await api<{ url: string }>("/api/stripe-connect", { action: "onboard" });
-      window.location.href = url;
+      await openExternal(url);
+      if (isNative) setBusy(false);
+    } catch {
+      setMessage({ type: "err", text: t("error") });
+      setBusy(false);
+    }
+  }
+
+  async function deleteAccount() {
+    const word = t("deleteAccountWord");
+    const typed = window.prompt(`${t("deleteAccountHelp")}\n\n${t("deleteAccountConfirm")}`);
+    if (typed?.trim().toUpperCase() !== word) return;
+    setBusy(true);
+    try {
+      await api("/api/delete-account", {});
+      await supabase.auth.signOut();
+      alert(t("accountDeleted"));
     } catch {
       setMessage({ type: "err", text: t("error") });
       setBusy(false);
@@ -153,6 +178,19 @@ export default function Settings() {
           </button>
         </div>
       </form>
+
+      <section className="card stack">
+        <h2>{t("account")}</h2>
+        <p className="muted small">
+          <Link to="/privacy">{t("privacy")}</Link>
+        </p>
+        <p className="muted small">{t("deleteAccountHelp")}</p>
+        <div>
+          <button className="btn ghost danger" disabled={busy} onClick={deleteAccount}>
+            {t("deleteAccount")}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

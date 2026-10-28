@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#1d4ed8"/>
+  <!-- facture -->
+  <rect x="292" y="212" width="440" height="560" rx="44" fill="#ffffff"/>
+  <rect x="362" y="312" width="220" height="34" rx="17" fill="#bfdbfe"/>
+  <rect x="362" y="384" width="300" height="34" rx="17" fill="#bfdbfe"/>
+  <rect x="362" y="456" width="260" height="34" rx="17" fill="#bfdbfe"/>
+  <!-- coche de paiement reçu -->
+  <circle cx="676" cy="692" r="150" fill="#16a34a"/>
+  <path d="M606 694 l48 48 96 -108" fill="none" stroke="#ffffff" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

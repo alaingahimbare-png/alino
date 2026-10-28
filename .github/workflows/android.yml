@@ -1,0 +1,89 @@
+# Fabrique l'app Android à chaque mise à jour de main (ou à la demande, onglet Actions).
+# Résultats téléchargeables dans l'onglet Actions → la dernière exécution → « Artifacts » :
+#   - relancefacile-apk-test : APK à installer directement sur un téléphone Android pour tester
+#   - relancefacile-aab      : fichier .aab à téléverser sur Google Play
+# Le .aab est signé si les 4 secrets ANDROID_* existent dans Settings → Secrets → Actions
+# (voir le README, section « Applications mobiles »). Sans eux, il est fabriqué non signé.
+name: Android
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Construire l'interface (mode mobile)
+        run: npm run build:native
+
+      - name: Copier dans le projet Android
+        run: npx cap sync android
+
+      - name: Numéro de version
+        # versionCode doit augmenter à chaque envoi sur Google Play : on prend le numéro d'exécution.
+        run: |
+          sed -i -E "s/versionCode [0-9]+/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i -E "s/versionName \"[^\"]+\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+          grep -E "versionCode|versionName" android/app/build.gradle
+
+      - name: Fabriquer l'APK de test et l'AAB
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug bundleRelease
+
+      - name: Signer l'AAB (si les secrets sont configurés)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::Secrets de signature absents : l'AAB n'est pas signé (Google Play le refusera)."
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          jarsigner -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore "$RUNNER_TEMP/upload.jks" -storepass "$KEYSTORE_PASSWORD" -keypass "$KEY_PASSWORD" \
+            "$AAB" "$KEY_ALIAS"
+          jarsigner -verify "$AAB"
+          rm -f "$RUNNER_TEMP/upload.jks"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relancefacile-apk-test
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relancefacile-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30

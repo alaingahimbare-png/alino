@@ -50,16 +50,40 @@ export function json(body: unknown, status = 200): Response {
   });
 }
 
-/** Enveloppe une fonction : méthode autorisée, erreurs propres, aucun détail interne exposé. */
+// L'app native (Capacitor) sert ses pages depuis ces origines locales et appelle l'API du site.
+// L'authentification passe par un jeton Bearer (pas de cookie), donc autoriser ces origines
+// n'expose rien de plus : chaque requête doit toujours porter un jeton valide.
+const NATIVE_ORIGINS = new Set(["capacitor://localhost", "https://localhost", "http://localhost"]);
+
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin");
+  if (!origin || !NATIVE_ORIGINS.has(origin)) return {};
+  return {
+    "access-control-allow-origin": origin,
+    "access-control-allow-methods": "POST, OPTIONS",
+    "access-control-allow-headers": "authorization, content-type",
+    "access-control-max-age": "86400",
+    vary: "Origin",
+  };
+}
+
+function withHeaders(res: Response, headers: Record<string, string>): Response {
+  for (const [k, v] of Object.entries(headers)) res.headers.set(k, v);
+  return res;
+}
+
+/** Enveloppe une fonction : méthode autorisée, CORS pour l'app native, erreurs propres. */
 export function handler(method: string, fn: (req: Request) => Promise<Response>) {
   return async (req: Request): Promise<Response> => {
-    if (req.method !== method) return json({ error: "method_not_allowed" }, 405);
+    const cors = corsHeaders(req);
+    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+    if (req.method !== method) return withHeaders(json({ error: "method_not_allowed" }, 405), cors);
     try {
-      return await fn(req);
+      return withHeaders(await fn(req), cors);
     } catch (err) {
-      if (err instanceof HttpError) return json({ error: err.message }, err.status);
+      if (err instanceof HttpError) return withHeaders(json({ error: err.message }, err.status), cors);
       console.error(err);
-      return json({ error: "server_error" }, 500);
+      return withHeaders(json({ error: "server_error" }, 500), cors);
     }
   };
 }

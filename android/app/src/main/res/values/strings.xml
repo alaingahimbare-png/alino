@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RelanceFacile</string>
+    <string name="title_activity_main">RelanceFacile</string>
+    <string name="package_name">com.bleucupplus.relancefacile</string>
+    <string name="custom_url_scheme">com.bleucupplus.relancefacile</string>
+</resources>
