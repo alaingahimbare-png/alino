@@ -1,0 +1,29 @@
+{
+  "name": "relancefacile",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "RelanceFacile / PayNudge — devis, factures et relances de paiement pour les pros du service à domicile",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "typecheck": "tsc",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@netlify/functions": "^6.0.3",
+    "@supabase/supabase-js": "^2.118.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5",
+    "stripe": "^23.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  }
+}
