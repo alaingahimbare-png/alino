@@ -44,11 +44,9 @@ supabase/migrations/    schéma de la base de données
 
 1. **Connect** → activez Connect sur votre compte de plateforme.
 2. **Developers → API keys** : notez la clé secrète `sk_test_…`.
-3. **Developers → Webhooks** → *Add endpoint* :
-   - URL : `https://VOTRE-SITE.netlify.app/api/stripe-webhook`
-   - Cochez **« Listen to events on Connected accounts »**
-   - Événements : `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `account.updated`
-   - Notez le secret de signature `whsec_…`
+3. **Workbench → Webhooks** → créez **deux** destinations vers `https://VOTRE-SITE.netlify.app/api/stripe-webhook` :
+   - Portée **Your account**, événements `checkout.session.completed` et `checkout.session.async_payment_succeeded` → son secret va dans `STRIPE_WEBHOOK_SECRET`
+   - Portée **Connected accounts**, événement `account.updated` → son secret va dans `STRIPE_CONNECT_WEBHOOK_SECRET`
 
 > Les paiements utilisent des « destination charges » : la session de paiement est créée sur la plateforme, puis l'argent est transféré au compte du pro.
 
