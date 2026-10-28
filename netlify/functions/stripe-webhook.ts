@@ -1,22 +1,12 @@
 // POST /api/stripe-webhook — événements Stripe (signature vérifiée).
-// Deux destinations Stripe pointent ici :
+// Facultatif : l'app vérifie déjà le paiement au retour du client et le statut Connect
+// dans les Paramètres. Ce webhook sert de filet de sécurité. Deux destinations possibles :
 //   - « Your account » : checkout.session.*      → STRIPE_WEBHOOK_SECRET
 //   - « Connected accounts » : account.updated   → STRIPE_CONNECT_WEBHOOK_SECRET
 import type { Config } from "@netlify/functions";
 import type Stripe from "stripe";
+import { markPaid } from "../lib/payments";
 import { handler, json, stripe, supabaseAdmin } from "../lib/server";
-
-async function markPaid(session: Stripe.Checkout.Session) {
-  const documentId = session.metadata?.document_id;
-  if (!documentId || session.payment_status !== "paid") return;
-  const { error } = await supabaseAdmin()
-    .from("documents")
-    .update({ status: "paid", stripe_checkout_session_id: session.id })
-    .eq("id", documentId)
-    .eq("kind", "invoice")
-    .neq("status", "paid");
-  if (error) throw error;
-}
 
 export default handler("POST", async (req) => {
   // Stripe envoie les événements de la plateforme et ceux des comptes connectés

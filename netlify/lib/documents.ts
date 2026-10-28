@@ -14,6 +14,7 @@ export interface FullDocument {
   public_token: string;
   reminders_paused: boolean;
   paid_at: string | null;
+  stripe_checkout_session_id: string | null;
   client: { id: string; name: string; email: string | null; address: string | null; language: "fr" | "en" };
   items: { description: string; quantity: number; unit_price_cents: number; position: number }[];
   business: {
@@ -31,7 +32,7 @@ export interface FullDocument {
 }
 
 const SELECT = `id, owner_id, kind, number, status, issue_date, due_date, tax_rate, notes, public_token,
-  reminders_paused, paid_at,
+  reminders_paused, paid_at, stripe_checkout_session_id,
   client:clients!documents_client_id_owner_id_fkey(id, name, email, address, language),
   items:document_items(description, quantity, unit_price_cents, position),
   business:businesses(name, email, phone, address, currency, language, reminder_days, stripe_account_id, stripe_charges_enabled)`;

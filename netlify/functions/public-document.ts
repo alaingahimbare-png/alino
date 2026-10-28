@@ -4,6 +4,7 @@
 //   pay            : crée une session Stripe Checkout pour une facture
 import type { Config, Context } from "@netlify/functions";
 import { loadDocument, type FullDocument } from "../lib/documents";
+import { syncCheckoutSession } from "../lib/payments";
 import { assertUuid, HttpError, json, readJson, siteUrl, stripe, supabaseAdmin } from "../lib/server";
 
 function canPay(d: FullDocument): boolean {
@@ -41,6 +42,13 @@ function publicView(d: FullDocument) {
 async function load(token: string): Promise<FullDocument> {
   const doc = await loadDocument({ token: assertUuid(token) });
   if (doc.status === "draft") throw new HttpError(404, "not_found"); // brouillon : pas encore partagé
+  // Facture en attente avec un paiement Stripe commencé : on vérifie directement auprès de Stripe
+  // (fonctionne sans webhook, par exemple au retour du client après le paiement).
+  if (doc.kind === "invoice" && doc.status === "sent" && doc.stripe_checkout_session_id) {
+    if (await syncCheckoutSession(doc.stripe_checkout_session_id, doc.id)) {
+      return loadDocument({ token: doc.public_token });
+    }
+  }
   return doc;
 }
 
